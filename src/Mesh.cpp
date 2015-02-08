@@ -1,7 +1,10 @@
 #include "../include/Context.h"
+#include "../include/Mesh.h"
 #include <vector>
 #include <string>
-
+#include <fstream>
+#include <iostream>
+#include <sstream>
 
 // The mesh is constructed from context.
 int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
@@ -21,10 +24,10 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
   double cellWidth = (rightBound - leftBound) / ((double) (RiemannContext.MESH_RESOLUTION));
 
   // Construct mesh and find the index best place on the Mesh to split 
-  double * density[mesh.NCells];
-  double * velocity[mesh.NCells];
-  double * pressure[mesh.NCells];
-  double * positions[mesh.NCells];
+  double  density[mesh.NCells];
+  double  velocity[mesh.NCells];
+  double  pressure[mesh.NCells];
+  double  positions[mesh.NCells];
   double difference = rightBound - leftBound + 1.; // Initial difference can't be physical
   int indexOfDiscontinuity = mesh.NCells;
 
@@ -38,7 +41,7 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
       difference = positions[i] - RiemannContext.INITIAL_DISCONTINUITY;
     }
   
-  for (int i = 0; i < mesh.NCells)
+  for (int i = 0; i < mesh.NCells; i++)
     {
       if (i < indexOfDiscontinuity)
 	{
@@ -55,10 +58,27 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
 	}
     }
   
-  mesh.FirstMeshElement = &positions;
-  mesh.FirstDensityElement = &density;
-  mesh.FirstPressureElement = &pressure;
-  mesh.FirstVelocityElement = &velocity;
+  mesh.FirstMeshElement = positions;
+  mesh.FirstDensityElement = density;
+  mesh.FirstPressureElement = pressure;
+  mesh.FirstVelocityElement = velocity;
 
+  return 0;
+}
+
+int PrintDataToFile(mesh_t &mesh, context_t &RiemannContext, int snapno)
+{
+  stringstream cppPath;
+  cppPath <<  RiemannContext.SNAPSHOT_PATH << snapno;
+  const char * PATH = (cppPath.str()).c_str();
+  FILE * f = fopen(PATH, "w");
+  
+  for (int i = 0; i < mesh.NCells; i++)
+    {
+      fprintf(f,"%10.5f %10.5f %10.5f %10.5f\n", mesh.FirstMeshElement[i], 
+	      mesh.FirstDensityElement[i], mesh.FirstPressureElement[i], mesh.FirstVelocityElement[i]);
+    }
+  fclose(f);
+  
   return 0;
 }

@@ -1,3 +1,4 @@
+#include "../include/Context.h"
 #include <vector>
 #include <string>
 #include <fstream>
@@ -11,6 +12,27 @@
 */
 
 using namespace std;
+
+int delimitString(vector<string> &tokens, string line, string delimiter)
+{
+  int pos = 0;
+  int newpos = 0;
+  string token;
+  while(1)
+    {
+      newpos = line.find(' ');
+      token = line.substr(0,newpos);
+      line.erase(0,newpos+1);
+
+      tokens.push_back(token);
+      if (newpos == string::npos)
+        {
+          break;
+        }
+    }
+}
+
+
 
 int readContext(char * PATH, context_t &context)
 {
@@ -72,9 +94,9 @@ int readContext(char * PATH, context_t &context)
               context.CFL_NUMBER = atof(tokens[j + 2].c_str());
             }
 
-          if (tokens[j] == "EVOLUTION_TIME")
+          if (tokens[j] == "EVOLVE_TIME")
             {
-              context.EVOLUTION_TIME = atof(tokens[j + 2].c_str());
+              context.EVOLVE_TIME = atof(tokens[j + 2].c_str());
             }
 
           if (tokens[j] == "X0")
@@ -121,13 +143,6 @@ int printContext(context_t &context)
   printf("MESH_RESOLUTION = %d\n",context.MESH_RESOLUTION);
   printf("X0 = %10.10f\n", context.X0);
   printf("X1 = %10.10f\n", context.X1);
-  printf("SIMULATION_TIME = %10.10f\n", context.SIMULATION_TIME);
-  cout << "FORCE_CALCULATOR = "  << context.FORCE_CALCULATOR  << '\n';
-  cout << "COSMOLOGY = " << context.COSMOLOGY << '\n';
-  cout << "GEOMETRY = " << context.GEOMETRY << '\n';
-  cout << "EXTERNAL_POTENTIAL = " << context.EXTERNAL_POTENTIAL << '\n';
-  cout << "BODIES_FILE_PATH = " << context.BODIES_FILE_PATH << '\n';
-  cout << "SNAPSHOT_PATH = " << context.OUTPUT_PATH << '\n';
-  cout << "DOMAIN_TYPE = " << context.DOMAIN_TYPE << '\n';
+  cout << "SNAPSHOT_PATH = " << context.SNAPSHOT_PATH << '\n';
 }
 //delimitString(vector<string> &tokens, string line, string delimiter);

@@ -22,5 +22,5 @@ struct mesh_t{
 };
 
 int ConstructMesh(mesh_t &mesh, context_t &RiemannContext);
-int PrintDataToFile(mesh_t &mesh);
+int PrintDataToFile(mesh_t &mesh, context_t &RiemannContext, int snapno);
 
