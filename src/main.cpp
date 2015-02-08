@@ -18,7 +18,9 @@ int main(int argc, char * argv[])
 
   // Initialize simulation
   
-  
+  mesh_t mesh;
+  ConstructMesh(mesh, RiemannContext);
+  int snapshot_number;
   
 
   // For time, do:
@@ -28,6 +30,9 @@ int main(int argc, char * argv[])
   // Update timestep
 
   // Write output.
+
+  
+  PrintDataToFile(mesh, RiemannContext, snapshot_number);
 
   return 0;
   
