@@ -5,6 +5,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <math.h>
+#include <cstdlib>
 
 // The mesh is constructed from context.
 int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
@@ -20,7 +22,8 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
   double rightVelocity = RiemannContext.U_R;
 
   // construct bin values
-  mesh.NCells = RiemannContext.MESH_RESOLUTION;
+  mesh.NCells = RiemannContext.MESH_RESOLUTION + 2; // For boundaries
+
   double cellWidth = (rightBound - leftBound) / ((double) (RiemannContext.MESH_RESOLUTION));
 
   // Construct mesh and find the index best place on the Mesh to split 
@@ -31,16 +34,21 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
   double difference = rightBound - leftBound + 1.; // Initial difference can't be physical
   int indexOfDiscontinuity = mesh.NCells;
 
-  for (int i = 0; i < mesh.NCells; i++)
+  for (int i = 1; i < mesh.NCells - 1; i++)
     {
-      positions[i] = (double) i * cellWidth;
-      if ((positions[i] - RiemannContext.INITIAL_DISCONTINUITY) < difference)
+      positions[i] = ((double) i - 1) * cellWidth;
+      if (fabs(positions[i] - RiemannContext.INITIAL_DISCONTINUITY) < difference)
 	{
 	  indexOfDiscontinuity = i;
 	}
-      difference = positions[i] - RiemannContext.INITIAL_DISCONTINUITY;
+      //printf("The difference is %10.10f\n", difference);
+
+      difference = fabs(positions[i] - RiemannContext.INITIAL_DISCONTINUITY);
     }
+  positions[0] = positions[1] - cellWidth;
+  positions[mesh.NCells - 1] = positions[mesh.NCells - 2] + cellWidth;
   
+  //printf("The discontinuity position is %d\n",indexOfDiscontinuity);
   for (int i = 0; i < mesh.NCells; i++)
     {
       if (i < indexOfDiscontinuity)
@@ -58,11 +66,34 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
 	}
     }
   
-  mesh.FirstMeshElement = positions;
-  mesh.FirstDensityElement = density;
-  mesh.FirstPressureElement = pressure;
-  mesh.FirstVelocityElement = velocity;
+  mesh.FirstMeshElement = (double*)calloc(mesh.NCells, sizeof(double));//positions;
+  mesh.FirstDensityElement = (double*)calloc(mesh.NCells, sizeof(double));//density;
+  mesh.FirstPressureElement = (double*)calloc(mesh.NCells, sizeof(double));//pressure;
+  mesh.FirstVelocityElement = (double*)calloc(mesh.NCells, sizeof(double));//velocity;
 
+  
+  for (int k = 0; k < mesh.NCells; k++)
+    {
+      /* printf("%10.10f, %10.10f, %10.10f, %10.10f\n", mesh.FirstMeshElement[k], mesh.FirstDensityElement[k], 
+	     mesh.FirstPressureElement[k], mesh.FirstVelocityElement[k]);
+      */
+      mesh.FirstMeshElement[k] = positions[k];
+      mesh.FirstDensityElement[k] = density[k];
+      mesh.FirstPressureElement[k] = pressure[k];
+      mesh.FirstVelocityElement[k] = velocity[k];
+    }
+  
+  return 0;
+}
+
+
+int PrintMeshData(mesh_t &mesh)
+{
+  for (int k = 0; k < mesh.NCells; k++)
+    {
+      printf("%10.10f, %10.10f, %10.10f, %10.10f\n", mesh.FirstMeshElement[k], mesh.FirstDensityElement[k],
+             mesh.FirstPressureElement[k], mesh.FirstVelocityElement[k]);
+    }
   return 0;
 }
 

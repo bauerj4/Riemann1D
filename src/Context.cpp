@@ -143,6 +143,17 @@ int printContext(context_t &context)
   printf("MESH_RESOLUTION = %d\n",context.MESH_RESOLUTION);
   printf("X0 = %10.10f\n", context.X0);
   printf("X1 = %10.10f\n", context.X1);
+  printf("INITIAL_DISCONTINUITY = %10.10f\n", context.INITIAL_DISCONTINUITY);
+  printf("RHO_L = %10.10f\n", context.RHO_L);
+  printf("P_L = %10.10f\n", context.P_L);
+  printf("U_L = %10.10f\n", context.U_L);
+  printf("RHO_R = %10.10f\n", context.RHO_R);
+  printf("P_R = %10.10f\n", context.P_R);
+  printf("U_R = %10.10f\n", context.U_R);
+
+  printf("EVOLVE_TIME = %10.10f\n", context.EVOLVE_TIME);
+  printf("CFL_NUMBER = %10.10f\n", context.CFL_NUMBER);
+
   cout << "SNAPSHOT_PATH = " << context.SNAPSHOT_PATH << '\n';
 }
 //delimitString(vector<string> &tokens, string line, string delimiter);

@@ -19,9 +19,12 @@ int main(int argc, char * argv[])
   // Initialize simulation
   
   mesh_t mesh;
+  printf("Constructing mesh...\n");
   ConstructMesh(mesh, RiemannContext);
-  int snapshot_number;
+  printf("Mesh constructed.\n");
   
+  int snapshot_number = 0;
+  PrintDataToFile(mesh, RiemannContext, snapshot_number);
 
   // For time, do:
   // Compute fluxes
