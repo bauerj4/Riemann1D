@@ -17,4 +17,6 @@ using namespace std;
 // The fluxes need not be printed or converted, so 
 // there is no harm in using a vector.
 
+vector<double> primativeTo1DConservative(vector<double> &primative);
+vector<double> conservativeTo1DPrimative(vector<double> &conservative);
 int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes); 
