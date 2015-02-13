@@ -1,4 +1,5 @@
 #include "../include/Fluxes.h"
+#include "../include/Context.h"
 #include <string>
 #include <vector>
 
@@ -10,4 +11,5 @@
 
 using namespace std;
 
-int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes,mesh_t &mesh, double &current_time);
+int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes,
+	     mesh_t &mesh, context_t &RiemannContext, double &current_time, double smax);

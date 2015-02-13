@@ -46,7 +46,7 @@ vector<double> conservativeTo1DPrimative(vector<double> conservative)
   return conservative;
 }
 
-int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
+int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
 {
   // From Toro 2009
   double gamma = 1.4; // Given.
@@ -58,7 +58,7 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
     }
   // Compute quantities in starred region
   
-  double u_L, u_R, p_star, P_bar, P_L, P_R, rho_bar, rho_L, rho_R, 
+  double u_L, u_R, p_star, P_bar, P_L, P_R, rho_bar, rho_L, rho_R, tempSmax,
     a_bar, a_L, a_R, q_L, q_R, S_L, S_R, S_star, E_L, E_R, prefactor_L, prefactor_R;
 
   vector<double> Conserved_R(3,0);
@@ -69,8 +69,8 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
   vector<double> Flux_L(3,0);
   vector<double> Flux_R_Star(3,0);
   vector<double> Flux_L_Star(3,0);
-
-
+  
+  tempSmax = 0;
   for (int i = 1; i < (mesh.NCells - 1); i++)
     {
       P_L = mesh.FirstPressureElement[i-1];
@@ -119,6 +119,18 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
 
       S_L = u_L - a_L * q_L;
       S_R = u_R + a_R * q_R;
+
+      // MAKE SURE THIS IS RIGHT
+      if (fabs(S_L) > tempSmax)
+	{
+	  tempSmax = fabs(S_L);
+	}
+      if (fabs(S_R) > tempSmax)
+	{
+          tempSmax = fabs(S_R);
+        }
+
+
 
       double numerator = P_R - P_L + rho_L * u_L * (S_L - u_L) - rho_R * u_R * (S_R - u_R);
       double denominator = rho_L * (S_L - u_L) - rho_R * (S_R - u_R);

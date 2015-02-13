@@ -29,10 +29,11 @@ int main(int argc, char * argv[])
 
   // Declare flux vector
   vector<vector<double> > fluxes(mesh.NCells, vector<double>(3,0));
-
+  double currentTime = 0;
+  double SMAX;
   // For time, do:
   // Compute fluxes
-  HLLC_FLUX(mesh, fluxes);
+  HLLC_FLUX(mesh, fluxes, SMAX);
   // Update mesh
   // Calculate timestep
   // Update timestep

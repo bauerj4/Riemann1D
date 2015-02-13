@@ -19,4 +19,4 @@ using namespace std;
 
 vector<double> primativeTo1DConservative(vector<double> &primative);
 vector<double> conservativeTo1DPrimative(vector<double> &conservative);
-int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes); 
+int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax); 
