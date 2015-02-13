@@ -59,12 +59,16 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
   // Compute quantities in starred region
   
   double u_L, u_R, p_star, P_bar, P_L, P_R, rho_bar, rho_L, rho_R, 
-    a_bar, a_L, a_R, q_L, q_R, S_L, S_R, S_star;
+    a_bar, a_L, a_R, q_L, q_R, S_L, S_R, S_star, E_L, E_R, prefactor_L, prefactor_R;
 
   vector<double> Conserved_R(3,0);
   vector<double> Conserved_L(3,0);
   vector<double> Conserved_R_Star(3,0);
   vector<double> Conserved_L_Star(3,0);
+  vector<double> Flux_R(3,0);
+  vector<double> Flux_L(3,0);
+  vector<double> Flux_R_Star(3,0);
+  vector<double> Flux_L_Star(3,0);
 
 
   for (int i = 1; i < (mesh.NCells - 1); i++)
@@ -139,29 +143,66 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
 
       Conserved_L = primativeTo1DConservative(primative_L);
 
+      prefactor_L = rho_L * (S_L - u_L) / (S_L - S_star);
+      prefactor_R = rho_R * (S_R - u_R) / (S_R - S_star);
+
+      E_L = primative_L[2] / (primative_L[0]*(gamma - 1));
+      E_R = primative_R[2] / (primative_R[0]*(gamma - 1));
+      
+
+      Conserved_L_Star[0] = prefactor_L;
+      Conserved_L_Star[1] = prefactor_L * S_star;
+      Conserved_L_Star[2] = prefactor_L * ((E_L / rho_L) + (S_star - u_L) * (S_star + (P_L)/(rho_L*(S_L - u_L))));
+
+      Conserved_R_Star[0] = prefactor_R;
+      Conserved_R_Star[1] = prefactor_R * S_star;
+      Conserved_R_Star[2] = prefactor_R * ((E_R / rho_R) + (S_star - u_R) * (S_star + (P_R)/(rho_R*(S_R - u_R))));
+
+      Flux_R[0] = primative_R[0] * primative_R[1];
+      Flux_R[1] = primative_R[0] * primative_R[1] * primative_R[1] + P_R;
+      Flux_R[2] = primative_R[1] * (E_R + P_R);
+
+      Flux_L[0] = primative_L[0] * primative_L[1];
+      Flux_L[1] = primative_L[0] * primative_L[1] * primative_L[1] + P_L;
+      Flux_L[2] = primative_L[1] * (E_L + P_L);
+
+      Flux_R_Star[0] = Flux_R[0] + S_R * (Conserved_R_Star[0] - Conserved_R[0]);
+      Flux_R_Star[1] = Flux_R[1] + S_R * (Conserved_R_Star[1] - Conserved_R[1]);
+      Flux_R_Star[2] = Flux_R[2] + S_R * (Conserved_R_Star[2] - Conserved_R[2]);
+
+      Flux_L_Star[0] = Flux_L[0] + S_L * (Conserved_L_Star[0] - Conserved_L[0]);
+      Flux_L_Star[1] = Flux_L[1] + S_L * (Conserved_L_Star[1] - Conserved_L[1]);
+      Flux_L_Star[2] = Flux_L[2] + S_L * (Conserved_L_Star[2] - Conserved_L[2]);
+
       // Construct the HLLC flux
+
+      int debugCount = 0;
       if (S_L >= 0)
 	{
-	  // Construct flux vector
+	  fluxes[i] = Flux_L;
+	  debugCount++;
 	}
 
       if (S_star >= 0 && S_L <= 0)
 	{
-	  // Construct flux vector
+	  fluxes[i] = Flux_L_Star;
+	  debugCount++;
 	}
 
       if (S_star <= 0 && S_R >= 0)
 	{
-	  // Construct flux vector
+	  fluxes[i] = Flux_R_Star;
+	  debugCount++;
 	}
 
       if (S_R <= 0)
 	{
-	  // Construct flux vector
+	  fluxes[i] = Flux_R;
+	  debugCount++;
 	}
+      printf("The debug count is %d\n", debugCount);
       
     }
-
 
   return 0;
 }
