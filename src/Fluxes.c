@@ -13,29 +13,29 @@ using namespace std;
   E = P / (rho (gamma - 1))
 */
 
-int primitiveTo1DConservative(vector<double> &primitive)
+vector<double> primativeTo1DConservative(vector<double> &primative)
 {
-  if (primitive.size()!=3)
+  if (primative.size()!=3)
     {
-      printf("INCORRECT PRIMITIVE VARIABLE SIZE!\n");
-      return 1;
+      printf("INCORRECT PRIMATIVE VARIABLE SIZE!\n");
+      return primative;
     }
   double gamma = 1.4;
-  primitive[1] *= primitive[0];
+  primative[1] *= primative[0];
   // Compute energy from pressure
-  double energy = primitive[2] / (primitive[0] * (gamma - 1.));
-  primitive[2] = energy * primitive[0];
-  return 0;
+  double energy = primative[2] / (primative[0] * (gamma - 1.));
+  primative[2] = energy * primative[0];
+  return primative;
 }
 
-int conservativeTo1DPrimative(vector<double> conservative)
+vector<double> conservativeTo1DPrimative(vector<double> conservative)
 {
   double gamma = 1.4;
 
   if (conservative.size()!=3)
     {
       printf("INCORRECT CONSERVATIVE VARIABLE SIZE!\n");
-      return 1;
+      return conservative;
     }
 
 
@@ -43,7 +43,7 @@ int conservativeTo1DPrimative(vector<double> conservative)
   conservative[2] = conservative[2] / conservative[0];
   conservative[2] *= conservative[0] * (gamma - 1.); //from eq of state
 
-  return 0;
+  return conservative;
 }
 
 int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
@@ -51,7 +51,7 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
   // From Toro 2009
   double gamma = 1.4; // Given.
   
-  if (fluxes.size() != mesh.NCells)
+  if (fluxes.size() != mesh.NCells) // Should confirm that this is the correct number
     {
       printf("INVALID FLUX VECTOR SIZE!\n");
       return 1;
@@ -60,6 +60,12 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
   
   double u_L, u_R, p_star, P_bar, P_L, P_R, rho_bar, rho_L, rho_R, 
     a_bar, a_L, a_R, q_L, q_R, S_L, S_R, S_star;
+
+  vector<double> Conserved_R(3,0);
+  vector<double> Conserved_L(3,0);
+  vector<double> Conserved_R_Star(3,0);
+  vector<double> Conserved_L_Star(3,0);
+
 
   for (int i = 1; i < (mesh.NCells - 1); i++)
     {
@@ -114,7 +120,45 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes)
       double denominator = rho_L * (S_L - u_L) - rho_R * (S_R - u_R);
       S_star = numerator / denominator;
 
-      printf("The shock speed in the star region is %10.10f\n", S_star);
+      //printf("The shock speed in the star region is %10.10f\n", S_star);
+
+      // Construct conserved L/R and L/R star vectors from previously defined functions
+
+      vector<double> primative_L(3);
+      double primative_L_arr[3] = {rho_L, u_L, P_L};
+      primative_L.assign(&primative_L_arr[0], &primative_L_arr[0] + 3);
+      //printf("%10.10f, %10.10f,%10.10f\n", primative_L[0], primative_L[1], primative_L[2]);
+      //printf("The size of the primative variables is %d\n",(int)primative_L.size());
+      vector<double> primative_R(3);
+      double primative_R_arr[3] = {rho_R, u_R, P_R};
+      primative_R.assign(&primative_R_arr[0], &primative_R_arr[0] + 3);
+
+
+      Conserved_R = primativeTo1DConservative(primative_R);
+      //printf("%10.10f, %10.10f,%10.10f\n", Conserved_R[0], Conserved_R[1], Conserved_R[2]); 
+
+      Conserved_L = primativeTo1DConservative(primative_L);
+
+      // Construct the HLLC flux
+      if (S_L >= 0)
+	{
+	  // Construct flux vector
+	}
+
+      if (S_star >= 0 && S_L <= 0)
+	{
+	  // Construct flux vector
+	}
+
+      if (S_star <= 0 && S_R >= 0)
+	{
+	  // Construct flux vector
+	}
+
+      if (S_R <= 0)
+	{
+	  // Construct flux vector
+	}
       
     }
 
