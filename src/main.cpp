@@ -1,5 +1,6 @@
 #include "../include/Context.h"
 #include "../include/Mesh.h"
+#include "../include/Fluxes.h"
 #include <vector>
 #include <string>
 
@@ -26,8 +27,12 @@ int main(int argc, char * argv[])
   int snapshot_number = 0;
   PrintDataToFile(mesh, RiemannContext, snapshot_number);
 
+  // Declare flux vector
+  vector<vector<double> > fluxes(mesh.NCells, vector<double>(3,0));
+
   // For time, do:
   // Compute fluxes
+  HLLC_FLUX(mesh, fluxes);
   // Update mesh
   // Calculate timestep
   // Update timestep

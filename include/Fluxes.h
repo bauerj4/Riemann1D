@@ -17,4 +17,4 @@ using namespace std;
 // The fluxes need not be printed or converted, so 
 // there is no harm in using a vector.
 
-int HLLC_FLUX(mesh_t &mesh, vector<double> &fluxes); 
+int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes); 
