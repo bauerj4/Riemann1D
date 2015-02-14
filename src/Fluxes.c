@@ -21,11 +21,22 @@ vector<double> primativeTo1DConservative(vector<double> &primative)
       return primative;
     }
   double gamma = 1.4;
-  primative[1] *= primative[0];
+  double density = primative[0];
+  double velocity = primative[1];
+  double pressure = primative[2];
+  double conservative_2 = density * velocity;
+  //primative[1] *= primative[0];
   // Compute energy from pressure
-  double energy = primative[2] / (primative[0] * (gamma - 1.));
-  primative[2] = energy * primative[0];
-  return primative;
+  double int_energy = pressure / (density * (gamma - 1.));
+  double kinetic_energy = 0.5 * velocity * velocity;
+
+  double conservative_3 = density * (int_energy + kinetic_energy);
+  vector<double> conservative(3,0.0);
+  conservative[0] = density;
+  conservative[1] = conservative_2;
+  conservative[2] = conservative_3;
+  //primative[2] = energy * primative[0] + pow(primative[1]/primative[0],2.0);
+  return conservative;
 }
 
 vector<double> conservativeTo1DPrimative(vector<double> &conservative)
@@ -39,11 +50,19 @@ vector<double> conservativeTo1DPrimative(vector<double> &conservative)
     }
 
 
-  conservative[1] = conservative[1] / conservative[0]; 
-  conservative[2] = conservative[2] / conservative[0];
-  conservative[2] *= conservative[0] * (gamma - 1.); //from eq of state
+  double density = conservative[0]; 
+  double velocity = conservative[1] / density;
+  double spec_energy = conservative[2] / density;
+  //from eq of state
+  double int_energy = spec_energy - 0.5 * velocity * velocity;
+  double pressure = int_energy * density*(gamma -1.);
 
-  return conservative;
+  vector<double> primative(3,0.0);
+  primative[0] = density;
+  primative[1] = velocity;
+  primative[2] = pressure;
+
+  return primative;
 }
 
 int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
@@ -87,6 +106,7 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       a_L = pow((gamma * P_L / rho_L),0.5);
       a_R = pow((gamma * P_R / rho_R),0.5);
       a_bar = 0.5 * (a_L + a_R);
+      //printf("SOUND SPEEDS: %10.10f, %10.10f, %10.10f\n", a_L,a_R,a_bar);
 
       u_L = mesh.FirstVelocityElement[i-1];
       u_R = mesh.FirstVelocityElement[i];
@@ -137,6 +157,8 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       double numerator = P_R - P_L + rho_L * u_L * (S_L - u_L) - rho_R * u_R * (S_R - u_R);
       double denominator = rho_L * (S_L - u_L) - rho_R * (S_R - u_R);
       S_star = numerator / denominator;
+      //printf("THE MAX SIGNAL SPEEDS ARE: %10.10f, %10.10f, %10.10f\n", S_L,S_R, S_star);
+
       //printf("S_star is %10.10f\n",S_star);
 
       //printf("The shock speed in the star region is %10.10f\n", S_star);
@@ -161,8 +183,8 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       prefactor_L = rho_L * (S_L - u_L) / (S_L - S_star);
       prefactor_R = rho_R * (S_R - u_R) / (S_R - S_star);
 
-      E_L = primative_L[2] / (primative_L[0]*(gamma - 1));
-      E_R = primative_R[2] / (primative_R[0]*(gamma - 1));
+      E_L = rho_L * (primative_L[2] / (primative_L[0]*(gamma - 1)) + 0.5 * pow(u_L,2.0));
+      E_R = rho_R *(primative_R[2] / (primative_R[0]*(gamma - 1)) + 0.5 * pow(u_R,2.0));
       
 
       Conserved_L_Star[0] = prefactor_L;
@@ -195,28 +217,28 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       if (S_L >= 0)
 	{
 	  fluxes[i-1] = Flux_L;
-	  printf("Condition 1 tripped.\n");
+	  //printf("Condition 1 tripped.\n");
 	  debugCount++;
 	}
 
       if (S_star >= 0 && S_L <= 0)
 	{
 	  fluxes[i-1] = Flux_L_Star;
-          printf("Condition 2 tripped.\n");
+          //printf("Condition 2 tripped.\n");
 	  debugCount++;
 	}
 
       if (S_star <= 0 && S_R >= 0)
 	{
 	  fluxes[i-1] = Flux_R_Star;
-          printf("Condition 3 tripped.\n");
+          //printf("Condition 3 tripped.\n");
 	  debugCount++;
 	}
 
       if (S_R <= 0)
 	{
 	  fluxes[i-1] = Flux_R;
-          printf("Condition 4 tripped.\n");
+          //printf("Condition 4 tripped.\n");
 	  debugCount++;
 	}
       //printf("The debug count is %d\n", debugCount);

@@ -11,7 +11,15 @@ int main(int argc, char * argv[])
 {
 
   char * PATH = argv[1];
+  vector<double> testVector(3,2.0);
+  // Primative should invert conservative
+  testVector = primativeTo1DConservative(testVector);
+  printf("The conserved test components are: [%10.10f, %10.10f, %10.10f]\n", testVector[0],testVector[1], testVector[2]);
+  //
+  testVector = conservativeTo1DPrimative(testVector);
+  printf("The primative components are: [%10.10f, %10.10f, %10.10f]\n", testVector[0],testVector[1], testVector[2]);
   
+
   // Get context.
   
   context_t RiemannContext;
@@ -38,7 +46,7 @@ int main(int argc, char * argv[])
       primatives[i][0] = mesh.FirstDensityElement[i];
       primatives[i][1] = mesh.FirstVelocityElement[i];
       primatives[i][2] = mesh.FirstPressureElement[i];
-      printf("%10.10f, %10.10f, %10.10f", primatives[i][0], primatives[i][1], primatives[i][2]);
+      //printf("%10.10f, %10.10f, %10.10f", primatives[i][0], primatives[i][1], primatives[i][2]);
     }
 
   for (int i = 0; i < mesh.NCells; i++)
