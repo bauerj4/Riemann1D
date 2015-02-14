@@ -1,5 +1,6 @@
 #include "../include/Fluxes.h"
 #include "../include/Context.h"
+#include "../include/Mesh.h"
 #include <string>
 #include <vector>
 

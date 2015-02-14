@@ -47,6 +47,7 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
     }
   positions[0] = positions[1] - cellWidth;
   positions[mesh.NCells - 1] = positions[mesh.NCells - 2] + cellWidth;
+  //printf("THE MESH HAS %d CELLS.\n", mesh.NCells);
   
   //printf("The discontinuity position is %d\n",indexOfDiscontinuity);
   for (int i = 0; i < mesh.NCells; i++)

@@ -28,7 +28,7 @@ vector<double> primativeTo1DConservative(vector<double> &primative)
   return primative;
 }
 
-vector<double> conservativeTo1DPrimative(vector<double> conservative)
+vector<double> conservativeTo1DPrimative(vector<double> &conservative)
 {
   double gamma = 1.4;
 
@@ -51,7 +51,7 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
   // From Toro 2009
   double gamma = 1.4; // Given.
   
-  if (fluxes.size() != mesh.NCells) // Should confirm that this is the correct number
+  if (fluxes.size() != (mesh.NCells - 1)) // Should confirm that this is the correct number
     {
       printf("INVALID FLUX VECTOR SIZE!\n");
       return 1;
@@ -70,9 +70,10 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
   vector<double> Flux_R_Star(3,0);
   vector<double> Flux_L_Star(3,0);
   
-  tempSmax = 0;
-  for (int i = 1; i < (mesh.NCells - 1); i++)
+  tempSmax = 0.;
+  for (int i = 1; i < (mesh.NCells ); i++)
     {
+      //printf("ITERATION %d\n",i);
       P_L = mesh.FirstPressureElement[i-1];
       P_R = mesh.FirstPressureElement[i];
       P_bar = 0.5 * (P_L + P_R);
@@ -91,29 +92,30 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       u_R = mesh.FirstVelocityElement[i];
 
       p_star = P_bar - 0.5 * (u_R - u_L) * a_bar * rho_bar;
-
+      //printf("P STAR IS %10.10f\n", p_star);
       if (p_star < 0)
 	{
-	  p_star = 0;
+	  //printf("P star is 0.\n");
+	  p_star = 0.;
 	}
 
       if (p_star <= P_L)
 	{
-	  q_L = 1;
+	  q_L = 1.;
 	}
       else
 	{
-	  double num = 1 + ((gamma + 1)/(2 * gamma)) * (p_star/P_L - 1);
+	  double num = 1 + ((gamma + 1)/(2 * gamma)) * ((p_star/P_L) - 1);
 	  q_L = pow(num,0.5);
 	}
 
       if (p_star <= P_R)
 	{
-          q_R =1;
+          q_R =1.;
 	}
       else
 	{
-          double num = 1 + ((gamma + 1)/(2 * gamma)) * (p_star/P_R - 1);
+          double num = 1. + ((gamma + 1.)/(2. * gamma)) * ((p_star/P_R) - 1.);
           q_R =pow(num,0.5);
 	}
 
@@ -121,13 +123,13 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       S_R = u_R + a_R * q_R;
 
       // MAKE SURE THIS IS RIGHT
-      if (fabs(S_L) > tempSmax)
+      if (fabs(u_L) + a_L > tempSmax)
 	{
-	  tempSmax = fabs(S_L);
+	  tempSmax = fabs(u_L) + a_L;
 	}
-      if (fabs(S_R) > tempSmax)
+      if (fabs(u_R) + a_R > tempSmax)
 	{
-          tempSmax = fabs(S_R);
+          tempSmax = fabs(u_R) + a_R;
         }
 
 
@@ -135,6 +137,7 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       double numerator = P_R - P_L + rho_L * u_L * (S_L - u_L) - rho_R * u_R * (S_R - u_R);
       double denominator = rho_L * (S_L - u_L) - rho_R * (S_R - u_R);
       S_star = numerator / denominator;
+      //printf("S_star is %10.10f\n",S_star);
 
       //printf("The shock speed in the star region is %10.10f\n", S_star);
 
@@ -187,35 +190,39 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       Flux_L_Star[2] = Flux_L[2] + S_L * (Conserved_L_Star[2] - Conserved_L[2]);
 
       // Construct the HLLC flux
-
+      //printf("Constructing fluxes...\n");
       int debugCount = 0;
       if (S_L >= 0)
 	{
-	  fluxes[i] = Flux_L;
+	  fluxes[i-1] = Flux_L;
+	  printf("Condition 1 tripped.\n");
 	  debugCount++;
 	}
 
       if (S_star >= 0 && S_L <= 0)
 	{
-	  fluxes[i] = Flux_L_Star;
+	  fluxes[i-1] = Flux_L_Star;
+          printf("Condition 2 tripped.\n");
 	  debugCount++;
 	}
 
       if (S_star <= 0 && S_R >= 0)
 	{
-	  fluxes[i] = Flux_R_Star;
+	  fluxes[i-1] = Flux_R_Star;
+          printf("Condition 3 tripped.\n");
 	  debugCount++;
 	}
 
       if (S_R <= 0)
 	{
-	  fluxes[i] = Flux_R;
+	  fluxes[i-1] = Flux_R;
+          printf("Condition 4 tripped.\n");
 	  debugCount++;
 	}
-      printf("The debug count is %d\n", debugCount);
+      //printf("The debug count is %d\n", debugCount);
       
     }
-
+  smax = tempSmax;
   return 0;
 }
 
