@@ -33,11 +33,41 @@ int main(int argc, char * argv[])
   ConstructMesh(mesh, RiemannContext);
   printf("Mesh constructed.\n");
   
+  // Add more ghost cells for higher order
+  /*
+  if (RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_SUPERBEE" || RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_SUPERBEE")
+    {
+      double positions[mesh.NCells + 2];
+      double pressures[mesh.NCells + 2];
+      double velocities[mesh.NCells + 2];
+      double denisities[mesh.NCells + 2];
+
+      mesh.NCells = mesh.NCells + 2;
+      for (int i = 0; i < mesh.NCells; i++)
+	{
+	  if i == mesh.NCells - 1)
+	    {
+	      positions[i] = positions[i - 1];
+	      pressures[i] = pressures[i - 1];
+	      velocities[i] = velocities[i - 1];
+	    }
+	}
+
+    }
+  */
+
   int snapshot_number = 0;
   PrintDataToFile(mesh, RiemannContext, snapshot_number);
-
+  //return 1;
   // Declare flux vector
-  vector<vector<double> > fluxes(mesh.NCells - 1, vector<double>(3,0.));
+  vector<vector<double> > fluxes(mesh.NCells - 3, vector<double>(3,0.));
+
+  if(RiemannContext.SOLUTION_METHOD == "HLLC")
+    {
+      fluxes.push_back(vector<double>(3,0.));
+      fluxes.push_back(vector<double>(3,0.));
+    }
+
   vector<vector<double> > primatives(mesh.NCells,vector<double> (3,0.));
   vector<vector<double> > conserved(mesh.NCells,vector<double> (3,0.));
 
@@ -60,9 +90,20 @@ int main(int argc, char * argv[])
   while (currentTime < RiemannContext.EVOLVE_TIME)
     {
       // Compute fluxes with TRANSMISSIVE BCs
-      HLLC_FLUX(mesh, fluxes, SMAX);
+      if (RiemannContext.SOLUTION_METHOD == "HLLC")
+	{
+	  HLLC_FLUX(mesh, fluxes, SMAX);
+	}
+
+      if (RiemannContext.SOLUTION_METHOD=="HLLC_FLUX_SUPERBEE")
+	{
+	  int success = 1;
+	  success = HLLC_FLUX_SUPERBEE(mesh, fluxes, RiemannContext, SMAX);
+	  printf("FLUX RETURN CODE %d\n",success);
+	}
       // Update mesh
       //vector<vector<double> > test(mesh.NCells - 1, vector<double>(3,0.));
+      printf("Updating Mesh.\n");
       FVUpdate(conserved, fluxes, mesh, RiemannContext, currentTime, SMAX);
 
       for (int i = 0; i < mesh.NCells; i++)

@@ -22,8 +22,16 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
   double rightVelocity = RiemannContext.U_R;
 
   // construct bin values
-  mesh.NCells = RiemannContext.MESH_RESOLUTION + 2; // For boundaries
-
+  if (RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_SUPERBEE" ||
+      RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINMOD")
+    {
+      printf("Second order mesh.\n");
+      mesh.NCells = RiemannContext.MESH_RESOLUTION + 4;
+    }
+  else
+    {
+      mesh.NCells = RiemannContext.MESH_RESOLUTION + 2; // For boundaries
+    }
   double cellWidth = (rightBound - leftBound) / ((double) (RiemannContext.MESH_RESOLUTION));
 
   // Construct mesh and find the index best place on the Mesh to split 
@@ -33,7 +41,7 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
   double  positions[mesh.NCells];
   double difference = rightBound - leftBound + 1.; // Initial difference can't be physical
   int indexOfDiscontinuity = mesh.NCells;
-
+  /*
   for (int i = 1; i < mesh.NCells - 1; i++)
     {
       positions[i] = ((double) i - 1) * cellWidth;
@@ -45,8 +53,48 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
 
       difference = fabs(positions[i] - RiemannContext.INITIAL_DISCONTINUITY);
     }
-  positions[0] = positions[1] - cellWidth;
-  positions[mesh.NCells - 1] = positions[mesh.NCells - 2] + cellWidth;
+  */
+  if (RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_SUPERBEE" ||
+      RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINMOD")
+    {
+
+      for (int i = 2; i < mesh.NCells - 2; i++)
+	{
+	  positions[i] = ((double) i - 2) * cellWidth;
+	  if (fabs(positions[i] - RiemannContext.INITIAL_DISCONTINUITY) < difference)
+	    {
+	      indexOfDiscontinuity = i;
+	    }
+	  //printf("The difference is %10.10f\n", difference);                                                                                        
+
+	  difference = fabs(positions[i] - RiemannContext.INITIAL_DISCONTINUITY);
+	}
+
+      printf("Setting second order positions...\n");
+      positions[0] = positions[2] - 2. * cellWidth;
+      positions[1] = positions[2] - cellWidth;
+      positions[mesh.NCells - 2] = positions[mesh.NCells - 3] + cellWidth;
+      positions[mesh.NCells - 1] = positions[mesh.NCells - 3] + 2. * cellWidth;
+    }
+
+  else
+    {
+      for (int i = 1; i < mesh.NCells - 1; i++)
+	{
+	  positions[i] = ((double) i - 1) * cellWidth;
+	  if (fabs(positions[i] - RiemannContext.INITIAL_DISCONTINUITY) < difference)
+	    {
+	      indexOfDiscontinuity = i;
+	    }
+	  //printf("The difference is %10.10f\n", difference);                                                                                        
+
+	  difference = fabs(positions[i] - RiemannContext.INITIAL_DISCONTINUITY);
+	}
+
+      
+      positions[0] = positions[1] - cellWidth;
+      positions[mesh.NCells - 1] = positions[mesh.NCells - 2] + cellWidth;
+    }
   //printf("THE MESH HAS %d CELLS.\n", mesh.NCells);
   
   //printf("The discontinuity position is %d\n",indexOfDiscontinuity);

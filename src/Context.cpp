@@ -155,5 +155,7 @@ int printContext(context_t &context)
   printf("CFL_NUMBER = %10.10f\n", context.CFL_NUMBER);
 
   cout << "SNAPSHOT_PATH = " << context.SNAPSHOT_PATH << '\n';
+  cout << "SOLUTION_METHOD = " << context.SOLUTION_METHOD << '\n';
+
 }
 //delimitString(vector<string> &tokens, string line, string delimiter);

@@ -20,3 +20,6 @@ using namespace std;
 vector<double> primativeTo1DConservative(vector<double> &primative);
 vector<double> conservativeTo1DPrimative(vector<double> &conservative);
 int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax); 
+int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t &RiemannContext,double &smax);
+double SUPERBEE(double r, double c);
+double MINBEE(double r, double c);
