@@ -99,6 +99,12 @@ int main(int argc, char * argv[])
 	{
 	  int success = 1;
 	  success = HLLC_FLUX_SUPERBEE(mesh, fluxes, RiemannContext, SMAX);
+	  if (success != 0)
+	    {
+	      printf("RIEMANN SOLVER RETURNED WITH ERROR.\n");
+	      PrintDataToFile(mesh, RiemannContext, snapshot_number);
+	      break;
+	    }
 	  printf("FLUX RETURN CODE %d\n",success);
 	}
       // Update mesh
