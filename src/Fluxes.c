@@ -18,21 +18,21 @@ double SUPERBEE(double r, double c)
     {
       return 1.0;
     }
-  if(r > 0 && r <= 0.5)
+  else if(r > 0 && r <= 0.5)
     {
       return (1. - 2.*(1. - c) * r);
     }
-  if (r > 0.5 && r <= 1.0)
+  else if (r > 0.5 && r <= 1.0)
     {
       return c;
     }
-  if (r > 1.0 && r <= 2.0)
+  else if (r > 1.0 && r <= 2.0)
     {
       return (1. - (1. - c)*r);
     }
   else
     {
-      return (2. * c - 1.);
+      return ((2. * c) - 1.);
     }
 }
 
@@ -42,7 +42,7 @@ double MINBEE(double r, double c)
 }
 
 
-vector<double> primativeTo1DConservative(vector<double> &primative)
+vector<double> primativeTo1DConservative(vector<double> primative)
 {
   if (primative.size()!=3)
     {
@@ -68,7 +68,7 @@ vector<double> primativeTo1DConservative(vector<double> &primative)
   return conservative;
 }
 
-vector<double> conservativeTo1DPrimative(vector<double> &conservative)
+vector<double> conservativeTo1DPrimative(vector<double> conservative)
 {
   double gamma = 1.4;
 
@@ -142,7 +142,7 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       u_R = mesh.FirstVelocityElement[i];
 
       p_star = P_bar - 0.5 * (u_R - u_L) * a_bar * rho_bar;
-      //printf("P STAR IS %10.10f\n", p_star);
+      printf("P STAR IS %10.10f\n", p_star);
       if (p_star < 0)
 	{
 	  //printf("P star is 0.\n");
@@ -155,7 +155,7 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
 	}
       else
 	{
-	  double num = 1 + ((gamma + 1)/(2 * gamma)) * ((p_star/P_L) - 1);
+	  double num = 1 + (((gamma + 1)/(2 * gamma)) * ((p_star/P_L) - 1));
 	  q_L = pow(num,0.5);
 	}
 
@@ -184,12 +184,12 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
 
 
 
-      double numerator = P_R - P_L + rho_L * u_L * (S_L - u_L) - rho_R * u_R * (S_R - u_R);
-      double denominator = rho_L * (S_L - u_L) - rho_R * (S_R - u_R);
+      double numerator = P_R - P_L + (rho_L * u_L * (S_L - u_L)) - (rho_R * u_R * (S_R - u_R));
+      double denominator = (rho_L * (S_L - u_L)) - (rho_R * (S_R - u_R));
       S_star = numerator / denominator;
       //printf("THE MAX SIGNAL SPEEDS ARE: %10.10f, %10.10f, %10.10f\n", S_L,S_R, S_star);
 
-      //printf("S_star is %10.10f\n",S_star);
+      printf("S_star is %10.10f\n",S_star);
 
       //printf("The shock speed in the star region is %10.10f\n", S_star);
 
@@ -213,8 +213,8 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       prefactor_L = rho_L * (S_L - u_L) / (S_L - S_star);
       prefactor_R = rho_R * (S_R - u_R) / (S_R - S_star);
 
-      E_L = rho_L * (primative_L[2] / (primative_L[0]*(gamma - 1)) + 0.5 * pow(u_L,2.0));
-      E_R = rho_R *(primative_R[2] / (primative_R[0]*(gamma - 1)) + 0.5 * pow(u_R,2.0));
+      E_L = rho_L *(P_L / (rho_L*(gamma - 1)) + 0.5 * pow(u_L,2.0));
+      E_R = rho_R *(P_R / (rho_R*(gamma - 1)) + 0.5 * pow(u_R,2.0));
       
 
       Conserved_L_Star[0] = prefactor_L;
@@ -225,13 +225,13 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       Conserved_R_Star[1] = prefactor_R * S_star;
       Conserved_R_Star[2] = prefactor_R * ((E_R / rho_R) + (S_star - u_R) * (S_star + (P_R)/(rho_R*(S_R - u_R))));
 
-      Flux_R[0] = primative_R[0] * primative_R[1];
-      Flux_R[1] = primative_R[0] * primative_R[1] * primative_R[1] + P_R;
+      Flux_R[0] = rho_R * u_R;
+      Flux_R[1] = rho_R * u_R * u_R + P_R;
       Flux_R[2] = primative_R[1] * (E_R + P_R);
 
-      Flux_L[0] = primative_L[0] * primative_L[1];
-      Flux_L[1] = primative_L[0] * primative_L[1] * primative_L[1] + P_L;
-      Flux_L[2] = primative_L[1] * (E_L + P_L);
+      Flux_L[0] = rho_L * u_L;
+      Flux_L[1] = rho_L * u_L * u_L + P_L;
+      Flux_L[2] = u_L * (E_L + P_L);
 
       Flux_R_Star[0] = Flux_R[0] + S_R * (Conserved_R_Star[0] - Conserved_R[0]);
       Flux_R_Star[1] = Flux_R[1] + S_R * (Conserved_R_Star[1] - Conserved_R[1]);
@@ -248,33 +248,36 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       if (S_L >= 0)
 	{
 	  fluxes[i-1] = Flux_L;
-	  //printf("Condition 1 tripped.\n");
+	  printf("Condition 1 tripped.\n");
 	  debugCount++;
 	}
 
-      if (S_star >= 0 && S_L <= 0)
+      else if (S_star >= 0 && S_L <= 0)
 	{
 	  fluxes[i-1] = Flux_L_Star;
-          //printf("Condition 2 tripped.\n");
+          printf("Condition 2 tripped.\n");
 	  debugCount++;
 	}
 
-      if (S_star <= 0 && S_R >= 0)
+      else if (S_star <= 0 && S_R >= 0)
 	{
 	  fluxes[i-1] = Flux_R_Star;
-          //printf("Condition 3 tripped.\n");
+          printf("Condition 3 tripped.\n");
 	  debugCount++;
 	}
 
-      if (S_R <= 0)
+      else if (S_R <= 0)
 	{
 	  fluxes[i-1] = Flux_R;
-          //printf("Condition 4 tripped.\n");
+          printf("Condition 4 tripped.\n");
 	  debugCount++;
 	}
       //printf("The debug count is %d\n", debugCount);
-      
+      printf("flux = [%10.10f, %10.10f, %10.10f]\n", fluxes[i-1][0], fluxes[i-1][1], fluxes[i-1][2]);
+  
     }
+
+  //  printf("flux = [%10.10f, %10.10f, %10.10f]", fluxes[i][0], fluxes[i][1], fluxes[i][2]);
   smax = tempSmax;
   return 0;
 }
@@ -343,7 +346,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       u_L = mesh.FirstVelocityElement[i-1];
       u_R = mesh.FirstVelocityElement[i];
 
-      p_star = P_bar - 0.5 * (u_R - u_L) * a_bar * rho_bar;
+      p_star = P_bar - (0.5 * (u_R - u_L) * a_bar * rho_bar);
       //printf("P STAR IS %10.10f\n", p_star);
       if (p_star < 0)
 	{
@@ -389,7 +392,16 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
       double numerator = P_R - P_L + rho_L * u_L * (S_L - u_L) - rho_R * u_R * (S_R - u_R);
       double denominator = rho_L * (S_L - u_L) - rho_R * (S_R - u_R);
-      S_star = numerator / denominator;
+      if (denominator == 0)
+	{
+	  printf("denominator is 0.\n");
+	  return 1;
+	}
+		
+      else
+	{
+	  S_star = numerator / denominator;
+	}
       //printf("THE MAX SIGNAL SPEEDS ARE: %10.10f, %10.10f, %10.10f\n", S_L,S_R, S_star);
 
       //printf("S_star is %10.10f\n",S_star);
@@ -413,20 +425,51 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
       Conserved_L = primativeTo1DConservative(primative_L);
 
+      if (S_L - S_star == 0 || S_R - S_star == 0)
+	{
+	  printf("SOUND SPEED DIFFERENCE IS 0;\n");
+	  return 1;
+	}
       prefactor_L = rho_L * (S_L - u_L) / (S_L - S_star);
       prefactor_R = rho_R * (S_R - u_R) / (S_R - S_star);
+
+      //Dividing by density might be a problem
 
       E_L = rho_L * (primative_L[2] / (primative_L[0]*(gamma - 1)) + 0.5 * pow(u_L,2.0));
       E_R = rho_R *(primative_R[2] / (primative_R[0]*(gamma - 1)) + 0.5 * pow(u_R,2.0));
       
+      //      printf("RHO_L = %10.10f, RHO_R = %10.10f, U_L = %10.10f, U_R = %10.10f, E_L = %10.10f,E_R = %10.10f\n", rho_L, rho_R,u_L, u_R, E_L, E_R);
 
       Conserved_L_Star[0] = prefactor_L;
       Conserved_L_Star[1] = prefactor_L * S_star;
       Conserved_L_Star[2] = prefactor_L * ((E_L / rho_L) + (S_star - u_L) * (S_star + (P_L)/(rho_L*(S_L - u_L))));
+      
 
+      if (prefactor_L != prefactor_L)
+	{
+	  printf("PREFACTOR_L IS NAN\n");
+	}
+
+      else
+	{
+	  //printf("Prefactor_L = %10.10f\n", prefactor_L);
+	}
+      
       Conserved_R_Star[0] = prefactor_R;
       Conserved_R_Star[1] = prefactor_R * S_star;
       Conserved_R_Star[2] = prefactor_R * ((E_R / rho_R) + (S_star - u_R) * (S_star + (P_R)/(rho_R*(S_R - u_R))));
+
+      if (prefactor_R != prefactor_R)
+	{
+          //printf("PREFACTOR_R IS NAN\n");
+	}
+      else
+	{
+          printf("Prefactor_R = %10.10f\n", prefactor_R);
+        }
+
+
+
 
       Flux_R[0] = primative_R[0] * primative_R[1];
       Flux_R[1] = primative_R[0] * primative_R[1] * primative_R[1] + P_R;
@@ -439,6 +482,11 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       Flux_L[2] = primative_L[1] * (E_L + P_L);
 
       FLs[i-2] = (Flux_L);
+
+      if(Conserved_R_Star[0] != Conserved_R_Star[0] || Conserved_R_Star[1] != Conserved_R_Star[1] || Conserved_R_Star[2] != Conserved_R_Star[2])
+	{
+	  printf("UR STAR IS NAN\n");
+	}
       
       Flux_R_Star[0] = Flux_R[0] + S_R * (Conserved_R_Star[0] - Conserved_R[0]);
       Flux_R_Star[1] = Flux_R[1] + S_R * (Conserved_R_Star[1] - Conserved_R[1]);
@@ -452,60 +500,11 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       Flux_L_Star[2] = Flux_L[2] + S_L * (Conserved_L_Star[2] - Conserved_L[2]);
 
       FLStars[i-2] =(Flux_L_Star);
-      /*
-      ck[0]= -1.;
-      ck[mesh.NCells-5] = 1.;
-      rk[0] = (mesh.FirstDensityElement[2] - mesh.FirstDensityElement[1]) /(mesh.FirstDensityElement[3] - mesh.FirstDensityElement[2]);
-      rk[mesh.NCells-5] =  (mesh.FirstDensityElement[mesh.NCells - 6] - mesh.FirstDensityElement[mesh.NCells - 5]) /(mesh.FirstDensityElement[mesh.NCells - 6] - mesh.FirstDensityElement[mesh.NCells-7]);
-
-
-      for (int k = 1; k < mesh.NCells - 5; k++)
-	{
-	  
-	  ck[k] = SignalSpeeds[k];
-	  //ck[mesh.NCells-5] = 1.;
-	  //rk[0] = (mesh.FirstDensityElement[2] - mesh.FirstDensityElement[3]) / (mesh.FirstDensityElement[3] - mesh.FirstDensityElement[4]);
-	  
-	  }*/
-      // Construct the HLLC flux
-      //printf("Constructing fluxes...\n");
       
       int debugCount = 0;
 
-      /*
-      if (S_L >= 0)
-	{
-	  fluxes[i-1] = Flux_L;
-	  //printf("Condition 1 tripped.\n");
-	  debugCount++;
-	}
-
-      if (S_star >= 0 && S_L <= 0)
-	{
-	  fluxes[i-1] = Flux_L_Star;
-          //printf("Condition 2 tripped.\n");
-	  debugCount++;
-	}
-
-      if (S_star <= 0 && S_R >= 0)
-	{
-	  fluxes[i-1] = Flux_R_Star;
-          //printf("Condition 3 tripped.\n");
-	  debugCount++;
-	}
-
-      if (S_R <= 0)
-	{
-	  fluxes[i-1] = Flux_R;
-          //printf("Condition 4 tripped.\n");
-	  debugCount++;
-	  }*/
-      // WE SHOULD LET THE FINITE VOLUME MODULE TAKE CARE OF THE WAF
-      // BECAUSE TIMESTEPS ARE COMPUTED THERE.  IT IS BEST TO PASS
-      // S[] TO THE FV CALCULATOR AND COMPUTE WAF TVD.
       
     }
-
   printf("FUNDAMENTALS COMPUTED.\n");
 
   smax = tempSmax;
@@ -540,25 +539,29 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
       ck[k] = SignalSpeeds[k] * dt/dx;
       //printf("THE SIZE OF C IS %d AND THE SIZE OF SPEEDS IS %d\n ",(int)ck.size(),(int)SignalSpeeds.size());
-      if (ck[k] < 0 )
+      if (ck[k] > 0 && (mesh.FirstDensityElement[k+1] - mesh.FirstDensityElement[k]) != 0)
 	{
-	  rk[k] = (mesh.FirstDensityElement[k-1] - mesh.FirstDensityElement[k])/(mesh.FirstDensityElement[k] - mesh.FirstDensityElement[k+1]);
+	  rk[k] = (mesh.FirstDensityElement[k] - mesh.FirstDensityElement[k-1])/(mesh.FirstDensityElement[k+1] - mesh.FirstDensityElement[k]);
+	  //printf("RK CONDITION 1 yields %10.10f\n",rk[k]);
 	}
 
-      if (ck[k]<0)
+      else if (ck[k] <0 && (mesh.FirstDensityElement[k+1] - mesh.FirstDensityElement[k]) != 0) 
 	{
 	  rk[k] = (mesh.FirstDensityElement[k+2] - mesh.FirstDensityElement[k+1])/(mesh.FirstDensityElement[k+1] - mesh.FirstDensityElement[k]);
+          //printf("RK CONDITION 2\n");
 
 	}
       else
 	{
 	  rk[k] = 0;
+          //printf("RK CONDITION 3\n");
+
 	}
       //ck[mesh.NCells-5] = 1.;                                                                                                               
       //rk[0] = (mesh.FirstDensityElement[2] - mesh.FirstDensityElement[3]) / (mesh.FirstDensityElement[3] - mesh.FirstDensityElement[4]);    
     }
   printf("CK AND RK ASSIGNED.\n");
-    for (int i = 0; i < mesh.NCells - 3; i++)
+  for (int i = 0; i < mesh.NCells - 3; i++)
     {
       double sgnc1, sgnc2, sgnc3;
       //printf("ASSIGNING FLUXES, ITERATION %d / %d\n",i,(int)fluxes.size());
@@ -568,7 +571,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	}
       else
 	{
-	  sgnc1 = 0;
+	  sgnc1 = 0.;
 	}
       if (ck[i+1] != 0)
 	{
@@ -576,7 +579,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	}
       else
 	{
-	  sgnc2 = 0;
+	  sgnc2 = 0.;
 	}
       if(ck[i+1] != 0)
 	{
@@ -584,13 +587,14 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	}
       else
 	{
-	  sgnc3 = 0;
+	  sgnc3 = 0.;
 	}
       double phi1 = SUPERBEE(rk[i],fabs(ck[i]));
       double phi2 = SUPERBEE(rk[i + 1],fabs(ck[i + 1]));
       double phi3 = SUPERBEE(rk[i + 2],fabs(ck[i + 2] ));
-      //printf("The limiters are [%10.10f, %10.10f, %10.10f]\n", phi1,phi2,phi3);
-      //printf("The signal speeds are [%10.10f, %10.10f, %10.10f]\n", ck[i],ck[i+1],ck[i+2]);
+      printf("The limiters are [%10.10f, %10.10f, %10.10f]\n", phi1,phi2,phi3);
+      printf("The signal speeds are [%10.10f, %10.10f, %10.10f]\n", ck[i],ck[i+1],ck[i+2]);
+      //printf("The signs are [%10.10f, %10.10f, %10.10f]\n", sgnc1, sgnc2, sgnc3);
       if (ck[i] != ck[i] || ck[i+1]!=ck[i+1] || ck[i+2] != ck[i+2])
 	{
 	  printf("ck at iteration %d is NaN\n",i);
@@ -598,7 +602,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
       if (rk[i] != rk[i] || rk[i+1]!=rk[i+1] || rk[i+2] != rk[i+2])
 	{
-          printf("rk at iteration %d is NaN\n",i);
+	   printf("rk at iteration %d is NaN\n",i);
         }
 
 
@@ -623,25 +627,26 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
           printf("FR is NaN.\n");
         }
 
+      //printf("r = %10.10f at iteration %d\n", rk[i],i);
+      //printf("c = %10.10f at iteration %d\n", ck[i],i);
+
+      fluxes[i][0] = 0.5 * (FLs[i][0] + FRs[i][0]);
+      fluxes[i][0] -= 0.5 * sgnc1 * phi1 * (FLStars[i][0] - FLs[i][0]);
+      fluxes[i][0] -= 0.5 * sgnc2 * phi2 * (FRStars[i][0] - FLStars[i][0]);
+      fluxes[i][0] -= 0.5 * sgnc3 * phi3 * (FRs[i][0] - FRStars[i][0]);
 
 
+      fluxes[i][1] = 0.5 * (FLs[i][1] + FRs[i][1]);
+      fluxes[i][1] -= 0.5 * sgnc1 * phi1 * (FLStars[i][1] - FLs[i][1]);
+      fluxes[i][1] -= 0.5 * sgnc2 * phi2 * (FRStars[i][1] - FLStars[i][1]);
+      fluxes[i][1] -= 0.5 * sgnc3 * phi3 * (FRs[i][1] - FRStars[i][1]);
 
-      fluxes[i ][0] = 0.5 * (FLs[i][0] + FRs[i][0] - 
-				sgnc1*phi1*(FLStars[i][0] - FLs[i][0]) 
-				- sgnc2*phi2*(FRStars[i][0] - FLStars[i][0]) 
-				- sgnc3 * phi3 *(FRs[i][0] - FRStars[i][0]));
-      fluxes[i ][1] = 0.5 *(FLs[i][1] + FRs[i][1]-
-			       sgnc1*phi1*(FLStars[i][1] - FLs[i][1])
-			       - sgnc2*phi2*(FRStars[i][1] - FLStars[i][1])
-			       - sgnc3 * phi3 *(FRs[i][1] - FRStars[i][1]));
-      fluxes[i ][2] = 0.5*(FLs[i][2] + FRs[i][2]-
-			      sgnc1*phi1*(FLStars[i][2] - FLs[i][2])
-			      - sgnc2*phi2*(FRStars[i][2] - FLStars[i][2])
-			      - sgnc3 * phi3 *(FRs[i][2] - FRStars[i][2]));
+      fluxes[i][2] = 0.5 * (FLs[i][2] + FRs[i][2]);
+      fluxes[i][2] -= 0.5 * sgnc1 * phi1 * (FLStars[i][2] - FLs[i][2]);
+      fluxes[i][2] -= 0.5 * sgnc2 * phi2 * (FRStars[i][2] - FLStars[i][2]);
+      fluxes[i][2] -= 0.5 * sgnc3 * phi3 * (FRs[i][2] - FRStars[i][2]);
 
-      printf("The calculated flux is [%10.10f, %10.10f, %10.10f]\n", 
-	     fluxes[i][0], fluxes[i][1], fluxes[i][2]);
-
+      printf("flux = [%10.10f, %10.10f, %10.10f]", fluxes[i][0], fluxes[i][1], fluxes[i][2]);
     }
     printf("Fluxes assigned.\n");
     return 0;

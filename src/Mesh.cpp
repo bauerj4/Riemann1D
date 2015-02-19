@@ -84,7 +84,7 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
 	  positions[i] = ((double) i - 1) * cellWidth;
 	  if (fabs(positions[i] - RiemannContext.INITIAL_DISCONTINUITY) < difference)
 	    {
-	      indexOfDiscontinuity = i;
+	      indexOfDiscontinuity = i ;
 	    }
 	  //printf("The difference is %10.10f\n", difference);                                                                                        
 
@@ -100,7 +100,7 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
   //printf("The discontinuity position is %d\n",indexOfDiscontinuity);
   for (int i = 0; i < mesh.NCells; i++)
     {
-      if (i < indexOfDiscontinuity)
+      if (i <= indexOfDiscontinuity)
 	{
 	  density[i] = leftDensity;
 	  pressure[i] = leftPressure;
@@ -111,7 +111,7 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
 	{
 	  density[i] = rightDensity;
 	  pressure[i] = rightPressure;
-	  velocity[i] = rightPressure;
+	  velocity[i] = rightVelocity;
 	}
     }
   

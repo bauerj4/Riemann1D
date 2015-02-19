@@ -22,7 +22,7 @@ int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes
       printf("Updating conserved quantities \n");
       for(int i = 2; i < mesh.NCells - 2; i++)
         {
-	  printf("Updating conserved %d.\n",i+1);
+	  //printf("Updating conserved %d.\n",i+1);
 
 	  if ((fluxes[i-1][0] - fluxes[i-2][0]) != (fluxes[i-1][0] - fluxes[i-2][0]))
 	    {
