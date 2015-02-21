@@ -551,19 +551,19 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	  && FLStars[0][k] == FLStars[0][k] && FLStars[1][k] == FLStars[1][k] && FLStars[2][k] == FLStars[2][k])
 	{
 	  printf("DQ != 0\n");
-	  ck[k+1] = SignalSpeeds[k] * dt/dx;
+	  ck[k+1] = SignalSpeeds[k+1] * dt/dx;
 	  //printf("THE SIZE OF C IS %d AND THE SIZE OF SPEEDS IS %d\n ",(int)ck.size(),(int)SignalSpeeds.size());
 	  
 	  /*
 	    For some reason, reversing the sign order fixes the behaviour...
 	  */
-	  if(ck[k+1] >= 0 && dq[k + 1] != 0)
+	  if(ck[k+1] <= 0 && dq[k + 1] != 0)
 	    {
 	      rk[k+1] = dq[k]/dq[k+1];
 	      printf("RK CONDITION 1 yields %10.10f\n",rk[k + 1]);
 	    }
 	  
-	  else if (ck[k+1] < 0 && dq[k+1] != 0.) 
+	  else if (ck[k+1] > 0 && dq[k+1] != 0.) 
 	    {
 	      rk[k+1] = dq[k+2]/dq[k+1];
 	      printf("RK CONDITION 2 yields %10.10f\n",rk[k+1]);
@@ -613,7 +613,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	    }
 	  if (rk[k] == rk[k])
 	    {
-	      phi1 = SUPERBEE(rk[k],fabs(ck[k]));
+	      phi1 = MINBEE(rk[k],fabs(ck[k]));
 	    }
 	  
 	  else
@@ -623,7 +623,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	  
 	  if (rk[k+1] == rk[k+1])
 	    {
-	      phi2 = SUPERBEE(rk[k+1],fabs(ck[k+ 1]));
+	      phi2 = MINBEE(rk[k+1],fabs(ck[k+ 1]));
 	    }
 	  else
 	    {
@@ -632,7 +632,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	  
 	  if(rk[k+2] == rk[k+2])
 	    {
-	      phi3 = SUPERBEE(rk[k+2],fabs(ck[k+2 ] ));
+	      phi3 = MINBEE(rk[k+2],fabs(ck[k+2 ] ));
 	    }
 	  else
 	    {
@@ -718,11 +718,11 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	  fluxes[k][2] -= 0.5 * sgnc2 * phi2 * (FRStars[k][2] - FLStars[k][2]);
 	  fluxes[k][2] -= 0.5 * sgnc3 * phi3 * (FRs[k][2] - FRStars[k][2]);
 
-          printf("FR = [%10.10f, %10.10f, %10.10f]\n", FRs[k][0], FRs[k][1], FRs[k][2]);                                                          
-          printf("FRStar = [%10.10f, %10.10f, %10.10f]\n", FRStars[k][0], FRStars[k][1], FRStars[k][2]);                                          
-          printf("FL = [%10.10f, %10.10f, %10.10f]\n", FLs[k][0], FLs[k][1], FLs[k][2]);                                                          
-          printf("FL = [%10.10f, %10.10f, %10.10f]\n", FLs[k][0], FLs[k][1], FLs[k][2]);                                                          
-          printf("LIMITER = [%10.10f. %10.10f, %10.10f]\n", phi1, phi2, phi3);                                                                    
+          printf("FR = [%10.10f, %10.10f, %10.10f]\n", FRs[k][0], FRs[k][1], FRs[k][2]);                                                         
+          printf("FRStar = [%10.10f, %10.10f, %10.10f]\n", FRStars[k][0], FRStars[k][1], FRStars[k][2]);                                         
+          printf("FL = [%10.10f, %10.10f, %10.10f]\n", FLs[k][0], FLs[k][1], FLs[k][2]);                                                         
+          printf("FL = [%10.10f, %10.10f, %10.10f]\n", FLs[k][0], FLs[k][1], FLs[k][2]);                                                         
+          printf("LIMITER = [%10.10f. %10.10f, %10.10f]\n", phi1, phi2, phi3);                                                                   
           printf("SGN = [%10.10f. %10.10f, %10.10f]\n", sgnc1, sgnc2, sgnc3);     
 	  
 	  /*
