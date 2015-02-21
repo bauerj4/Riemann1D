@@ -13,4 +13,4 @@
 using namespace std;
 
 int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes,
-	     mesh_t &mesh, context_t &RiemannContext, double &current_time, double smax);
+	     mesh_t &mesh, context_t &RiemannContext, double &current_time, double smax, int &i);

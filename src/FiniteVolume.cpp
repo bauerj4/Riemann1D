@@ -8,13 +8,22 @@
 using namespace std;
 
 int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes,
-	     mesh_t &mesh, context_t &RiemannContext, double &current_time, double smax)
+	     mesh_t &mesh, context_t &RiemannContext, double &current_time, double smax, int &iteration)
 {
+
+  //double reduction_const = 1.e-1;
   printf("smax = %10.10f\n",smax);
   double dx = fabs(RiemannContext.X1 - RiemannContext.X0)/RiemannContext.MESH_RESOLUTION;
   printf("dx = %10.10f\n", dx);
   double dt = dx/smax * RiemannContext.CFL_NUMBER;
-  printf("dt = %10.10f\n", dt);
+  // printf("dt = %10.10f\n", dt);
+
+  if (iteration < 4)
+    {
+      dt = 0.25 * dt;
+    }
+  printf("t + dt = %10.10f + %10.10f\n", current_time, dt);
+
 
   if(RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_SUPERBEE" ||
      RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINMOD")
@@ -29,9 +38,11 @@ int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes
 	      printf("ERROR: FLUXES ARE NAN.\n");
 	      return 1;
 	    }
-          conserved[i][0] -= dt/dx * (fluxes[i-1][0] - fluxes[i-2][0]);
-          conserved[i][1] -= dt/dx * (fluxes[i-1][1] - fluxes[i-2][1]);
-          conserved[i][2] -= dt/dx * (fluxes[i-1][2] - fluxes[i-2][2]);
+	  conserved[i][0] -= dt/dx * (fluxes[i-1][0] - fluxes[i-2][0]);
+	  conserved[i][1] -= dt/dx * (fluxes[i-1][1] - fluxes[i-2][1]);
+	  conserved[i][2] -= dt/dx * (fluxes[i-1][2] - fluxes[i-2][2]);
+
+	    
         }
       printf("Conserved quantities updated.\n");
     }
@@ -64,8 +75,9 @@ int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes
       conserved[mesh.NCells - 1][1] = conserved[mesh.NCells- 2][1];
       conserved[mesh.NCells - 1][2] = conserved[mesh.NCells- 2][2];
     }
-
-  current_time += dt;
+  current_time +=  dt;
+  iteration++;
+    
   printf("t + dt = %10.10f + %10.10f\n", current_time, dt);
   return 0;
 }
