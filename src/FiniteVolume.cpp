@@ -18,9 +18,9 @@ int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes
   double dt = dx/smax * RiemannContext.CFL_NUMBER;
   // printf("dt = %10.10f\n", dt);
 
-  if (iteration < 4)
+  if (iteration < 50)
     {
-      dt = 0.25 * dt;
+      dt = 0.02 * dt;
     }
   printf("t + dt = %10.10f + %10.10f\n", current_time, dt);
 
