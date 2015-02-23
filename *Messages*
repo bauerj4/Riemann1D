@@ -1,0 +1,15 @@
+("emacs" "src/Fluxes.cpp")
+Loading 00debian-vars...done
+Loading /etc/emacs/site-start.d/50asymptote.el (source)...done
+Loading /etc/emacs/site-start.d/50cmake-data.el (source)...done
+Loading /etc/emacs/site-start.d/50dictionaries-common.el (source)...
+Loading /var/cache/dictionaries-common/emacsen-ispell-dicts.el (source)...
+Error while loading 50dictionaries-common: Symbol's value as variable is void: debian-aspell-only-dictionary-alist
+Loading /etc/emacs/site-start.d/50latex-cjk-common.el (source)...
+Loading cjk-enc...done
+Loading /etc/emacs/site-start.d/50latex-cjk-common.el (source)...done
+Loading /etc/emacs/site-start.d/50latex-cjk-thai.el (source)...done
+For information about GNU Emacs and the GNU system, type C-h C-a.
+Loading cc-langs...done
+Loading vc-git...done
+Mark saved where search started
