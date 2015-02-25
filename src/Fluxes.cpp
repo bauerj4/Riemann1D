@@ -376,7 +376,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
   vector<double> Flux_R_Star(3,0);
   vector<double> Flux_L_Star(3,0);
   vector<double> SignalSpeeds(mesh.NCells - 2, 0.0);
-  vector<double> ck(mesh.NCells-3, 0.0);
+  vector<double> ck(mesh.NCells-2, 0.0);
   vector<double> ckstar(mesh.NCells-3,0.0);
   vector<double> rk(mesh.NCells-4, 0.0);
   vector<double> dq(mesh.NCells-1,0.0);
@@ -612,6 +612,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
 
       vector<double> primative_L(3);
+
       double primative_L_arr[3] = {rho_L, u_L, P_L};
       primative_L.assign(&primative_L_arr[0], &primative_L_arr[0] + 3);
 
@@ -688,9 +689,10 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
   
   for (int k = 0; k < mesh.NCells - 3; k++)
     {
-      ck[k] = SignalSpeeds[k] * dt/dx;
-      ckstar[k] = S_stars[k+1] * dt/dx;
+      ck[k+1] = SignalSpeeds[k] * dt/dx;
+      ckstar[k] = S_stars[k] * dt/dx;
     }
+  ck[0] = ck[2]; // BCs
 
   //ck[0]= -1.;
   //ck[mesh.NCells-3] = 1.;
@@ -699,7 +701,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
   for (int k = 0; k < mesh.NCells - 4; k++)
     {
-      printf("c_%d = %10.10f\n",k,ck[k]);
+      //printf("c_%d = %10.10f\n",k,ck[k]);
     }
 
   //PrintMeshData(mesh);
@@ -719,10 +721,15 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	  // printf("RK CONDITION 2 yields %10.10f\n",rk[k+1]);
 	  
 	}
-      
+      /*
+      else if (dq[k+2] == 0)
+	{
+	  rk[k] = 0;
+	  //recompute_fluxes[k] = true;
+	  }*/
+
       else
 	{
-	  //rk[k] = 0;
 	  recompute_fluxes[k] = true;
 	}
     }
@@ -751,7 +758,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	{
 	  sgnc2 = ckstar[k-2]/fabs(ckstar[k-2]);
 	}
-      else if (ckstar[k-2] == 0)
+      else if (ckstar[k-1] == 0)
 	{
 	  sgnc2 = 1.;
 	}
@@ -808,6 +815,25 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       sum = sum/2.;
       if (sum != )
       */
+
+      fluxes[k-2][0] = 0.5 * (FRs[k-2][0] + FLs[k-2][0]);
+      fluxes[k-2][0] -= 0.5 * sgnc1 * phi1 * (FLStars[k-2][0] - FLs[k-2][0]);
+      fluxes[k-2][0] -= 0.5 * sgnc2 * phi2 * (FRStars[k-2][0] - FLStars[k-2][0]);
+      fluxes[k-2][0] -= 0.5 * sgnc3 * phi3 * (FRs[k-2][0] - FRStars[k-2][0]);
+
+      fluxes[k-2][1] = 0.5 * (FRs[k-2][1] + FLs[k-2][1]);
+      fluxes[k-2][1] -=0.5 * sgnc1 * phi1 * (FLStars[k-2][1] - FLs[k-2][1]);
+      fluxes[k-2][1] -=0.5 * sgnc2 * phi2 * (FRStars[k-2][1] - FLStars[k-2][1]);
+      fluxes[k-2][1] -=0.5 * sgnc3 * phi3 * (FRs[k-2][1] - FRStars[k-2][1]);
+
+      fluxes[k-2][2] = 0.5 * (FRs[k-2][2] + FLs[k-2][2]);
+      fluxes[k-2][2] -=0.5 * sgnc1 * phi1 * (FLStars[k-2][2] - FLs[k-2][2]);
+      fluxes[k-2][2] -=0.5 * sgnc2 * phi2 * (FRStars[k-2][2] - FLStars[k-2][2]);
+      fluxes[k-2][2] -=0.5 * sgnc3 * phi3 * (FRs[k-2][2] - FRStars[k-2][2]);
+
+
+      
+      
       PrimativeBar[k-2][0] = 0.5 * (PrimativeRs[k-2][0] + PrimativeLs[k-2][0]);
       PrimativeBar[k-2][0] -= 0.5 * sgnc1 * phi1 * (PrimativeLStars[k-2][0] - PrimativeLs[k-2][0]);
       PrimativeBar[k-2][0] -= 0.5 * sgnc2 * phi2 * (PrimativeRStars[k-2][0] - PrimativeLStars[k-2][0]);
@@ -834,12 +860,12 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
       double kinetic_energy = 0.5 * PrimativeBar[k-2][1] * PrimativeBar[k-2][1];
       double energy = PrimativeBar[k-2][0] * (int_energy + kinetic_energy);
-
-
+      
+      
       fluxes[k-2][0] = PrimativeBar[k-2][0] * PrimativeBar[k-2][1];
       fluxes[k-2][1] = PrimativeBar[k-2][0] * PrimativeBar[k-2][1] * PrimativeBar[k-2][1] + PrimativeBar[k-2][2];
       fluxes[k-2][2] = PrimativeBar[k-2][1] * (energy + PrimativeBar[k-2][2]);
-
+      
       // CHECK TO MAKE SURE NUMBERS ARE REASONABLE
 
       vector<double> conserved;
@@ -849,7 +875,8 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
       //printf("Checking Flux Validity...\n");
       /*
-      if(k > 0)
+
+      if(k > 2)
         {
           //printf("Updating conserved %d.\n",i+1);                                                                                                
 	  conserved = primativeTo1DConservative(PrimativeRs[k-2]);
@@ -907,9 +934,9 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	  printf("Fluxes recomputed.\n");
 	  recompute_fluxes[k-2] = false;
 	}
-      //      recompute_fluxes[k] = false;
+	//      recompute_fluxes[k] = false;
     }
-
+      
   for (int i = 0; i < (int)fluxes.size(); i++)
     {
       printf("flux = [%10.10f, %10.10f, %10.10f]\n", fluxes[i][0], fluxes[i][1], fluxes[i][2]);
