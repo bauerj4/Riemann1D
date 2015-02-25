@@ -301,32 +301,32 @@ int HLLC_FLUX(mesh_t &mesh, vector<vector<double> > &fluxes, double &smax)
       
       //int debugCount = 0;
       if (S_L >= 0)
-	{
-	  fluxes[i-1] = Flux_L;
-	  printf("Condition 1 tripped.\n");
-	  //debugCount++;
-	}
+{
+  fluxes[i-1] = Flux_L;
+  printf("Condition 1 tripped.\n");
+  //debugCount++;
+}
 
       else if (S_star >= 0 && S_L <= 0)
-	{
-	  fluxes[i-1] = Flux_L_Star;
+{
+  fluxes[i-1] = Flux_L_Star;
           printf("Condition 2 tripped.\n");
-	  //debugCount++;
-	}
+  //debugCount++;
+}
 
       else if (S_star <= 0 && S_R >= 0)
-	{
-	  fluxes[i-1] = Flux_R_Star;
+{
+  fluxes[i-1] = Flux_R_Star;
           printf("Condition 3 tripped.\n");
-	  //debugCount++;
-	}
+  //debugCount++;
+}
 
       else if (S_R <= 0)
-	{
-	  fluxes[i-1] = Flux_R;
+{
+  fluxes[i-1] = Flux_R;
           printf("Condition 4 tripped.\n");
-	  //debugCount++;
-	}
+  //debugCount++;
+}
       //printf("The debug count is %d\n", debugCount);
       printf("flux = [%10.10f, %10.10f, %10.10f]\n", fluxes[i-1][0], fluxes[i-1][1], fluxes[i-1][2]);
   
@@ -376,7 +376,8 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
   vector<double> Flux_R_Star(3,0);
   vector<double> Flux_L_Star(3,0);
   vector<double> SignalSpeeds(mesh.NCells - 2, 0.0);
-  vector<double> ck(mesh.NCells-2, 0.0);
+  vector<double> ckr(mesh.NCells-2, 0.0);
+  vector<double> ckl(mesh.NCells-2, 0.0);
   vector<double> ckstar(mesh.NCells-3,0.0);
   vector<double> rk(mesh.NCells-4, 0.0);
   vector<double> dq(mesh.NCells-1,0.0);
@@ -545,7 +546,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       P_starL = P_L + rho_L *(S_L - u_L) * (S_star - u_L);
       P_starR =P_R + rho_R *(S_R - u_R) * (S_star - u_R);
 
-      SignalSpeeds[i-2] = S_R;
+      //SignalSpeeds[i-2] = S_R;
 
       //printf("The signal speed in cell %d is %10.10f computed from (a_R, q_R) = (%10.10f, %10.10f) \n",i,S_R,a_R,q_R);
 
@@ -689,11 +690,13 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
   
   for (int k = 0; k < mesh.NCells - 3; k++)
     {
-      ck[k+1] = SignalSpeeds[k] * dt/dx;
+      ckr[k+1] = SRs[k] * dt/dx;
+      ckl[k+1] = SLs[k] * dt/dx;
       ckstar[k] = S_stars[k] * dt/dx;
     }
-  ck[0] = ck[2]; // BCs
-
+  ckr[0] = ckr[1]; // BCs
+  ckl[0] = ckl[1];
+  //ckstar[0] = ckstar[2];
   //ck[0]= -1.;
   //ck[mesh.NCells-3] = 1.;
 
@@ -706,31 +709,32 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
   //PrintMeshData(mesh);
 
-  for (int k = 0; k < mesh.NCells - 4; k++)
+  for (int k = 0; k < mesh.NCells - 3; k++)
     {
-	
-      if(ck[k] > 0 && dq[k +2] != 0)
+      
+      if(ckl[k] > 0 && dq[k +2] != 0)
 	{
 	  rk[k] = dq[k+1]/dq[k+2];
 	  //printf("RK CONDITION 1 yields %10.10f\n",rk[k+1]);
 	}
       
-      else if (ck[k] < 0 && dq[k+2] != 0.) 
+      else if (ckl[k] < 0 && dq[k+2] != 0.) 
 	{
 	  rk[k] = dq[k+3]/dq[k+2];
 	  // printf("RK CONDITION 2 yields %10.10f\n",rk[k+1]);
-	  
+	    
 	}
       /*
       else if (dq[k+2] == 0)
-	{
-	  rk[k] = 0;
+      {
+        rk[k] = 0;
 	  //recompute_fluxes[k] = true;
 	  }*/
 
       else
 	{
-	  recompute_fluxes[k] = true;
+	  //rk[k] = 0;
+	  //recompute_fluxes[k] = true;
 	}
     }
   printf("RK computed.\n");
@@ -742,11 +746,11 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       double sgnc1, sgnc2, sgnc3, phi1,phi2,phi3;
       
       
-      if (ck[k] != 0  /*&& rk[i] != 0*/)
+      if (ckl[k-2] != 0  /*&& rk[i] != 0*/)
 	{
-	  sgnc1 = ck[k-2] / fabs(ck[k-2]);
+	  sgnc1 = ckl[k-2] / fabs(ckl[k-2]);
 	}
-      else if (ck[k-2] == 0)
+      else if (ckl[k-2] == 0)
 	{
 	  sgnc1 = 1.;
 	}
@@ -758,7 +762,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	{
 	  sgnc2 = ckstar[k-2]/fabs(ckstar[k-2]);
 	}
-      else if (ckstar[k-1] == 0)
+      else if (ckstar[k-2] == 0)
 	{
 	  sgnc2 = 1.;
 	}
@@ -766,11 +770,11 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	{
 	  sgnc2 = 0;
 	}
-      if(ck[k-1] != 0 /*&& rk[i+2] != 0*/)
+      if(ckr[k-2] != 0 /*&& rk[i+2] != 0*/)
 	{
-	  sgnc3 = ck[k-1] / fabs(ck[k-1]);
+	  sgnc3 = ckr[k-1] / fabs(ckr[k-1]);
 	}
-      else if(ck[k-1] == 0)
+      else if(ckr[k-1] == 0)
 	{ 
 	  sgnc3 = 1.;
 	}
@@ -780,9 +784,9 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	}
       if (rk[k-2] == rk[k-2])
 	{
-	  phi1 = MINBEE(rk[k-2],fabs(ck[k-2]));
+	  phi1 = MINBEE(rk[k-2],fabs(ckl[k-2]));
 	}
-	  
+        
       else
 	{
 	  phi1 = 1.0;
@@ -799,7 +803,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       
       if(rk[k-2] == rk[k-2])
 	{
-	  phi3 = MINBEE(rk[k-2],fabs(ck[k-1] ));
+	  phi3 = MINBEE(rk[k-2],fabs(ckr[k-1]));
 	}
       else
 	{
@@ -808,10 +812,10 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       /*
       double beta, sum;
       for (int j = 0; j < mesh.NCells-3; j++)
-	{
-	   beta = ck[j + 1] - ck[j];
-	   sum += beta;
-	}
+      {
+         beta = ck[j + 1] - ck[j];
+	    sum += beta;
+	    }
       sum = sum/2.;
       if (sum != )
       */
@@ -844,12 +848,12 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       PrimativeBar[k-2][1] -= 0.5 * sgnc2 * phi2 * (PrimativeRStars[k-2][1] - PrimativeLStars[k-2][1]);
       PrimativeBar[k-2][1] -= 0.5 * sgnc3 * phi3 * (PrimativeRs[k-2][1] - PrimativeRStars[k-2][1]);
 
-
+      
       PrimativeBar[k-2][2] = 0.5 * (PrimativeRs[k-2][2] + PrimativeLs[k-2][2]);
       PrimativeBar[k-2][2] -= 0.5 * sgnc1 * phi1 * (PrimativeLStars[k-2][2] - PrimativeLs[k-2][2]);
       PrimativeBar[k-2][2] -= 0.5 * sgnc2 * phi2 * (PrimativeRStars[k-2][2] - PrimativeLStars[k-2][2]);
       PrimativeBar[k-2][2] -= 0.5 * sgnc3 * phi3 * (PrimativeRs[k-2][2] - PrimativeRStars[k-2][2]);
-
+      
 
       double int_energy = PrimativeBar[k-2][2] / (PrimativeBar[k-2][0] * (gamma - 1.));
 
@@ -861,11 +865,11 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       double kinetic_energy = 0.5 * PrimativeBar[k-2][1] * PrimativeBar[k-2][1];
       double energy = PrimativeBar[k-2][0] * (int_energy + kinetic_energy);
       
-      
+      /*
       fluxes[k-2][0] = PrimativeBar[k-2][0] * PrimativeBar[k-2][1];
       fluxes[k-2][1] = PrimativeBar[k-2][0] * PrimativeBar[k-2][1] * PrimativeBar[k-2][1] + PrimativeBar[k-2][2];
       fluxes[k-2][2] = PrimativeBar[k-2][1] * (energy + PrimativeBar[k-2][2]);
-      
+      */
       // CHECK TO MAKE SURE NUMBERS ARE REASONABLE
 
       vector<double> conserved;
@@ -879,29 +883,29 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       if(k > 2)
         {
           //printf("Updating conserved %d.\n",i+1);                                                                                                
-	  conserved = primativeTo1DConservative(PrimativeRs[k-2]);
+	    conserved = primativeTo1DConservative(PrimativeRs[k-2]);
 
           if ((fluxes[k-1][0] - fluxes[k-2][0]) != (fluxes[k-1][0] - fluxes[k - 2][0]))
             {
               printf("ERROR: FLUXES ARE NAN.\n");
               return 1;
             }
-          conserved[0] -= dt/dx * (fluxes[k-1][0] - fluxes[k-2][0]);
-          conserved[1] -= dt/dx * (fluxes[k-1][1] - fluxes[k-2][1]);
-          conserved[2] -= dt/dx * (fluxes[k-1][2] - fluxes[k-2][2]);
-	 
-	  tempPrimative = conservativeTo1DPrimative(conserved);
-	  if (tempPrimative[0] <= 0 || tempPrimative[2] <= 0 || conserved[3] <= 0)
-	    {
-	      recompute_fluxes[k-2] = true;
-	      printf("FLUXES NEED TO BE REASSESSED.\n");
-	      //return 1;
-	      //break;
-	    }
-	    }*/
-	
+	    conserved[0] -= dt/dx * (fluxes[k-1][0] - fluxes[k-2][0]);
+	    conserved[1] -= dt/dx * (fluxes[k-1][1] - fluxes[k-2][1]);
+	    conserved[2] -= dt/dx * (fluxes[k-1][2] - fluxes[k-2][2]);
+	     
+	    tempPrimative = conservativeTo1DPrimative(conserved);
+	    if (tempPrimative[0] <= 0 || tempPrimative[2] <= 0 || conserved[3] <= 0)
+	      {
+      recompute_fluxes[k-2] = true;
+      printf("FLUXES NEED TO BE REASSESSED.\n");
+      //return 1;
+      //break;
+    }
+    }*/
       
       
+      //recompute_fluxes[k-2]  = true;
       if (recompute_fluxes[k-2])
 	{
 	  if (SLs[k-2] >= 0)
@@ -934,9 +938,10 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	  printf("Fluxes recomputed.\n");
 	  recompute_fluxes[k-2] = false;
 	}
-	//      recompute_fluxes[k] = false;
+      //      recompute_fluxes[k] = false;
     }
-      
+     
+  /*
   for (int i = 0; i < (int)fluxes.size(); i++)
     {
       printf("flux = [%10.10f, %10.10f, %10.10f]\n", fluxes[i][0], fluxes[i][1], fluxes[i][2]);
@@ -958,13 +963,12 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 
   if (sum != 1)
     {
-      printf("IMPROPER WEIGHTING %10.10f.\n", sum);
+      //printf("IMPROPER WEIGHTING %10.10f.\n", sum);
       //return 1;
-    }
+      }*/
 
   smax = tempSmax;
   return 0;
   
 }
-
 
