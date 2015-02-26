@@ -690,12 +690,12 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
   
   for (int k = 0; k < mesh.NCells - 3; k++)
     {
-      ckr[k+1] = SRs[k] * dt/dx;
-      ckl[k+1] = SLs[k] * dt/dx;
+      ckr[k] = SRs[k] * dt/dx;
+      ckl[k] = SLs[k] * dt/dx;
       ckstar[k] = S_stars[k] * dt/dx;
     }
-  ckr[0] = ckr[1]; // BCs
-  ckl[0] = ckl[1];
+  //ckr[0] = ckr[1]; // BCs
+  //ckl[0] = ckl[1];
   //ckstar[0] = ckstar[2];
   //ck[0]= -1.;
   //ck[mesh.NCells-3] = 1.;
@@ -712,15 +712,15 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
   for (int k = 0; k < mesh.NCells - 3; k++)
     {
       
-      if(ckl[k] > 0 && dq[k +2] != 0)
+      if(ckr[k] > 0 && dq[k +1] != 0)
 	{
-	  rk[k] = dq[k+1]/dq[k+2];
+	  rk[k] = dq[k]/dq[k+1];
 	  //printf("RK CONDITION 1 yields %10.10f\n",rk[k+1]);
 	}
       
-      else if (ckl[k] < 0 && dq[k+2] != 0.) 
+      else if (ckr[k] < 0 && dq[k+2] != 0.) 
 	{
-	  rk[k] = dq[k+3]/dq[k+2];
+	  rk[k] = dq[k+2]/dq[k+1];
 	  // printf("RK CONDITION 2 yields %10.10f\n",rk[k+1]);
 	    
 	}
@@ -772,9 +772,9 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	}
       if(ckr[k-2] != 0 /*&& rk[i+2] != 0*/)
 	{
-	  sgnc3 = ckr[k-1] / fabs(ckr[k-1]);
+	  sgnc3 = ckr[k-2] / fabs(ckr[k-2]);
 	}
-      else if(ckr[k-1] == 0)
+      else if(ckr[k-2] == 0)
 	{ 
 	  sgnc3 = 1.;
 	}
@@ -784,7 +784,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
 	}
       if (rk[k-2] == rk[k-2])
 	{
-	  phi1 = MINBEE(rk[k-2],fabs(ckl[k-2]));
+	  phi1 = SUPERBEE(rk[k-2],fabs(ckl[k-2]));
 	}
         
       else
@@ -794,7 +794,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       
       if (rk[k-2] == rk[k-2])
 	{
-	  phi2 = MINBEE(rk[k-2],fabs(ckstar[k - 2]));
+	  phi2 = SUPERBEE(rk[k-2],fabs(ckstar[k - 2]));
 	}
       else
 	{
@@ -803,7 +803,7 @@ int HLLC_FLUX_SUPERBEE(mesh_t &mesh, vector<vector<double> > &fluxes, context_t 
       
       if(rk[k-2] == rk[k-2])
 	{
-	  phi3 = MINBEE(rk[k-2],fabs(ckr[k-1]));
+	  phi3 = SUPERBEE(rk[k-2],fabs(ckr[k-2]));
 	}
       else
 	{
