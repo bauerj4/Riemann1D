@@ -23,7 +23,7 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
 
   // construct bin values
   if (RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_SUPERBEE" ||
-      RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINMOD")
+      RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINBEE")
     {
       printf("Second order mesh.\n");
       mesh.NCells = RiemannContext.MESH_RESOLUTION + 4;
@@ -55,7 +55,7 @@ int ConstructMesh(mesh_t &mesh, context_t &RiemannContext)
     }
   */
   if (RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_SUPERBEE" ||
-      RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINMOD")
+      RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINBEE")
     {
 
       for (int i = 2; i < mesh.NCells - 2; i++)

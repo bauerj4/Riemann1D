@@ -26,7 +26,7 @@ int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes
 
 
   if(RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_SUPERBEE" ||
-     RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINMOD")
+     RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINBEE")
     {
       printf("Updating conserved quantities \n");
       for(int i = 2; i < mesh.NCells - 2; i++)
@@ -59,7 +59,7 @@ int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes
   
   //SPECIFY BCS FOR GHOST CELLS
   if(RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_SUPERBEE" || 
-     RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINMOD")
+     RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINBEE")
     {
 
       conserved[0][0] = conserved[2][0];
