@@ -107,12 +107,27 @@ PrintDataToFile(mesh, RiemannContext, snapshot_number);
  	    }
  	  printf("FLUX RETURN CODE %d\n",success);
  	}
+
+      if (RiemannContext.SOLUTION_METHOD=="HLLC_FLUX_MINBEE")
+        {
+          int success = 1;
+          success = HLLC_FLUX_MINBEE(mesh, fluxes, RiemannContext, SMAX);
+          printf("Flux calculation finished.\n");
+          if (success != 0)
+            {
+              printf("RIEMANN SOLVER RETURNED WITH ERROR.\n");
+	      PrintDataToFile(mesh, RiemannContext, snapshot_number);
+              break;
+            }
+          printf("FLUX RETURN CODE %d\n",success);
+	}
+
        // Update mesh
       //vector<vector<double> > test(mesh.NCells - 1, vector<double>(3,0.));
        printf("Updating Mesh.\n");
       
       int success = FVUpdate(conserved, fluxes, mesh, RiemannContext, currentTime, SMAX, iteration);
-if (success != 0)
+      if (success != 0)
 	{
 	  printf("RIEMANN SOLVER RETURNED WITH ERROR.\n");
 	  PrintDataToFile(mesh, RiemannContext, snapshot_number);

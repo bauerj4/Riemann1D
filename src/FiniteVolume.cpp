@@ -62,22 +62,22 @@ int FVUpdate(vector<vector<double> > &conserved, vector<vector<double> > &fluxes
      RiemannContext.SOLUTION_METHOD == "HLLC_FLUX_MINMOD")
     {
 
-      conserved[0][0] = conserved[3][0];
-      conserved[0][1] = conserved[3][1];
-      conserved[0][2] = conserved[3][2];
+      conserved[0][0] = conserved[2][0];
+      conserved[0][1] = conserved[2][1];
+      conserved[0][2] = conserved[2][2];
 
-      conserved[1][0] = conserved[2][0];
-      conserved[1][1] = conserved[2][1];
-      conserved[1][2] = conserved[2][2];
+      conserved[1][0] = conserved[3][0];
+      conserved[1][1] = conserved[3][1];
+      conserved[1][2] = conserved[3][2];
 
 
-      conserved[mesh.NCells - 1][0] = conserved[mesh.NCells- 3][0];
-      conserved[mesh.NCells - 1][1] = conserved[mesh.NCells- 3][1];
-      conserved[mesh.NCells - 1][2] = conserved[mesh.NCells- 3][2];
+      conserved[mesh.NCells - 1][0] = conserved[mesh.NCells- 4][0];
+      conserved[mesh.NCells - 1][1] = conserved[mesh.NCells- 4][1];
+      conserved[mesh.NCells - 1][2] = conserved[mesh.NCells- 4][2];
 
-      conserved[mesh.NCells - 2][0] = conserved[mesh.NCells- 4][0];
-      conserved[mesh.NCells - 2][1] = conserved[mesh.NCells- 4][1];
-      conserved[mesh.NCells - 2][2] = conserved[mesh.NCells- 4][2];
+      conserved[mesh.NCells - 2][0] = conserved[mesh.NCells- 3][0];
+      conserved[mesh.NCells - 2][1] = conserved[mesh.NCells- 3][1];
+      conserved[mesh.NCells - 2][2] = conserved[mesh.NCells- 3][2];
     }
 
   else
